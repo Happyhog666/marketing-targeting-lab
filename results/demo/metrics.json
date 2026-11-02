@@ -1,0 +1,36 @@
+{
+  "dataset": "demo",
+  "rows": 20000,
+  "train_rows": 14000,
+  "test_rows": 6000,
+  "conversions": 3637,
+  "test_conversions": 1091,
+  "arm_counts": {
+    "size": {
+      "0": 10066,
+      "1": 9934
+    },
+    "sum": {
+      "0": 1358,
+      "1": 2279
+    }
+  },
+  "treatment_probability": 0.49664285714285716,
+  "response_auc": 0.6409507294912223,
+  "features": [
+    "f0",
+    "f1",
+    "f2",
+    "f3",
+    "f4",
+    "f5",
+    "f6",
+    "f7",
+    "f8",
+    "f9",
+    "f10",
+    "f11"
+  ],
+  "seed": 42,
+  "caveat": "Approximate pointwise intervals; benchmark estimates, not original advertiser ROI. No multiple-testing correction."
+}
