@@ -1,22 +1,32 @@
 {
   "dataset": "criteo",
-  "rows": 7000,
-  "train_rows": 4900,
-  "test_rows": 2100,
-  "conversions": 23,
-  "test_conversions": 8,
-  "arm_counts": {
+  "rows": 150000,
+  "train_rows": 105000,
+  "test_rows": 45000,
+  "conversions": 425,
+  "test_conversions": 127,
+  "test_arm_counts": {
     "size": {
-      "0": 1500,
-      "1": 5500
+      "0": 6726,
+      "1": 38274
     },
     "sum": {
-      "0": 2,
-      "1": 21
+      "0": 12,
+      "1": 115
     }
   },
-  "treatment_probability": 0.7346938775510204,
-  "response_auc": 0.9495697896749522,
+  "arm_counts": {
+    "size": {
+      "0": 22419,
+      "1": 127581
+    },
+    "sum": {
+      "0": 40,
+      "1": 385
+    }
+  },
+  "treatment_probability": 0.8505428571428572,
+  "response_auc": 0.9349461122055654,
   "features": [
     "f0",
     "f1",
@@ -34,86 +44,12 @@
   "seed": 42,
   "caveat": "Approximate pointwise intervals; benchmark estimates, not original advertiser ROI. No multiple-testing correction.",
   "provenance": {
-    "source": "https://huggingface.co/datasets/criteo/criteo-uplift",
-    "endpoint": "https://datasets-server.huggingface.co/rows",
-    "sample_rows": 7000,
+    "source": "https://huggingface.co/datasets/criteo/criteo-uplift/resolve/main/criteo-research-uplift-v2.1.csv.gz?download=true",
+    "rows_scanned": 13979592,
+    "sample_rows": 150000,
     "seed": 42,
-    "sampling": "70 retrieved randomly selected nonoverlapping 100-row blocks; final 92 rows excluded",
-    "status": "Partial API retrieval pilot due to rate limit",
-    "limitation": "Cluster sample, grouped train/test split and cluster-level approximate intervals; exploratory only.",
-    "block_ids": [
-      19480,
-      112825,
-      83304,
-      88495,
-      40941,
-      106955,
-      134495,
-      909,
-      37266,
-      117504,
-      76306,
-      77183,
-      131056,
-      15157,
-      70486,
-      77589,
-      69366,
-      116080,
-      25432,
-      78805,
-      3088,
-      23183,
-      118999,
-      92643,
-      20168,
-      27912,
-      108784,
-      106033,
-      102496,
-      68934,
-      139420,
-      124450,
-      75688,
-      102884,
-      44123,
-      65738,
-      60663,
-      47280,
-      71039,
-      69367,
-      104309,
-      18107,
-      113524,
-      62366,
-      87735,
-      109805,
-      60928,
-      22396,
-      64629,
-      88645,
-      39262,
-      42053,
-      81093,
-      21500,
-      63976,
-      100746,
-      101497,
-      65325,
-      127892,
-      95674,
-      68274,
-      44771,
-      101088,
-      77969,
-      103787,
-      61778,
-      131064,
-      17847,
-      94463,
-      115316
-    ]
-  },
-  "split": "GroupShuffleSplit on sampled blocks; 70/30",
-  "interval": "Approximate cluster-robust pointwise 95% normal interval across held-out blocks"
+    "sampling": "uniform random priorities over entire file",
+    "sha256": "2716e1bf0fd157a93b5bf86924d9088419dfbac2022c6cd90030220634f616dc",
+    "status": "Complete whole-file sample"
+  }
 }

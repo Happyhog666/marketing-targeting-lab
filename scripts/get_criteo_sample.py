@@ -20,6 +20,12 @@ if not archive.exists():
         with tmp.open('wb') as f:
             for chunk in r.iter_content(1024*1024): f.write(chunk)
     tmp.replace(archive)
+with archive.open('rb') as f:
+    digest = hashlib.file_digest(f, 'sha256').hexdigest()
+expected = '2716e1bf0fd157a93b5bf86924d9088419dfbac2022c6cd90030220634f616dc'
+if digest != expected:
+    raise ValueError('Downloaded archive checksum does not match the official dataset file; do not use it.')
+print('Verified official archive SHA-256.', flush=True)
 rng = np.random.default_rng(42)
 sample = None
 total = 0
@@ -31,6 +37,6 @@ for chunk in pd.read_csv(archive, compression='gzip', chunksize=200000):
 sample.drop(columns='_key').to_csv(folder/'criteo.csv', index=False)
 meta = dict(source=url, rows_scanned=total, sample_rows=len(sample), seed=42,
             sampling='uniform random priorities over entire file',
-            sha256=hashlib.file_digest(archive.open('rb'), 'sha256').hexdigest())
+            sha256=digest, status='Complete whole-file sample')
 (folder/'criteo_source.json').write_text(json.dumps(meta, indent=2))
 print(meta)

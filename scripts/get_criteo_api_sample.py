@@ -1,6 +1,5 @@
 """网络受限时从官方 HF 数据集查看 API 随机获取分散的 100 行区块。"""
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import argparse, json, time
 import numpy as np
 import pandas as pd
@@ -37,11 +36,9 @@ def fetch(block):
             time.sleep(min(30,2**attempt))
 rows = []
 if not args.cached_only:
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        pending = {pool.submit(fetch,int(b)):int(b) for b in blocks}
-        for i, future in enumerate(as_completed(pending),1):
-            rows.extend(future.result())
-            if i%25==0: print(f'Downloaded {i*100:,}/50,000 real records',flush=True)
+    for i, block in enumerate(blocks, 1):
+        rows.extend(fetch(int(block)))
+        if i%25==0: print(f'Downloaded {i*100:,}/50,000 real records',flush=True)
 else:
     blocks = [b for b in blocks if (cache/f'{b}.json').exists()]
     if len(blocks)<10: raise RuntimeError('Too few cached blocks for pilot')

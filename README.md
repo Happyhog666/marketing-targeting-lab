@@ -2,7 +2,13 @@
 
 Compare customers likely to purchase with customers whose purchase probability may increase under advertising. A reproducible Python and Streamlit portfolio project.
 
-**Current status:** local setup and dashboard verified. Synthetic teaching run: 20,000 rows. Real Criteo pilot: 7,000 rows from 70 random 100-row blocks retrieved before API rate limiting; only 23 conversions overall and 8 in the test set. These are pipeline checks, not credible evidence of strategy superiority. The planned 150,000-row whole-file sample remains incomplete because of download/network limits. No public deployment has been performed.
+**[Explore the live dashboard](https://marketing-targeting-lab-9gpecytcvp8vjs8smg6d4u.streamlit.app/)** | Python · scikit-learn · Streamlit
+
+**Business question:** Under a fixed targeting budget, should marketers prioritize people most likely to convert, or people whose conversion probability may change because of advertising?
+
+The analysis uses a reproducible random sample of **150,000 records** drawn from all 13,979,592 records in Criteo v2.1. The 45,000-record test set contains 127 conversions, including only 12 in the control group. The separate 20,000-record demo dataset is synthetic.
+
+At a 20% targeting budget, the estimated difference between uplift and response targeting is −0.000147 incremental conversions per test customer (approximate pointwise 95% interval −0.000621 to 0.000327). The interval includes zero, so this exploratory run does not establish that either policy is better. These numbers are benchmark estimates, not an advertiser's real-world returns.
 
 ## Run locally (Windows, Python 3.11)
 
@@ -16,7 +22,7 @@ python -m venv .venv
 .venv\Scripts\python.exe -m streamlit run app.py
 ```
 
-The demo is synthetic. Real data come from [Criteo's official dataset](https://huggingface.co/datasets/criteo/criteo-uplift), version 2.1. The full downloader samples uniformly over the complete file with seeded random priorities and writes provenance and a SHA-256 hash. It has not completed on this machine. The API fallback `scripts/get_criteo_api_sample.py` targets 500 randomly selected nonoverlapping blocks of 100 rows (excluding the final 92 rows). It caches progress and stops on rate limiting. Run it later to retry; use `--cached-only` to finalize available blocks as a partial pilot. Raw data are excluded from Git. The current pilot was produced with this fallback.
+The demo is synthetic. Real data come from [Criteo's official dataset](https://huggingface.co/datasets/criteo/criteo-uplift), version 2.1. The downloader verifies the source archive's SHA-256, samples uniformly over the complete file with seeded random priorities, and writes provenance. The API fallback `scripts/get_criteo_api_sample.py` can retrieve a smaller block sample when the full download is unavailable; it was not used for the current published result. Raw data are excluded from Git.
 
 ## Method
 
@@ -25,7 +31,8 @@ The demo is synthetic. Real data come from [Criteo's official dataset](https://h
 - Response ranks the treatment-arm predicted probability; uplift ranks the difference between arm predictions; random is a seeded baseline.
 - Inputs are only f0–f11. Visit and exposure are excluded to avoid post-treatment leakage.
 - Held-out incremental gain uses the transformed outcome Y*(T/e-(1-T)/(1-e)), with e estimated on training data. Cumulative gain is divided by the full test-set size. Approximate pointwise intervals use the standard error within the selected group; API samples instead aggregate policy contributions by held-out block for a cluster-level standard error. Intervals condition on fitted models and omit training/propensity estimation uncertainty.
-- The dashboard reports response AUC separately; AUC does not establish uplift performance.
+- At each budget, the dashboard also compares uplift against response using a paired difference on the same test set. Its pointwise normal interval likewise omits training uncertainty and any correction for examining multiple budgets. The area under each displayed gain curve is computed by trapezoidal integration, without an uncertainty interval.
+- The dashboard reports response AUC on the treated test group separately; AUC does not establish uplift performance.
 
 ## Limits
 
@@ -37,6 +44,6 @@ Diemert, E., Betlei, A., Renaudin, C., and Amini, M.-R. (2018). *A Large Scale B
 
 Dataset: CC BY-NC-SA 4.0. See [official terms and description](https://ailab.criteo.com/criteo-uplift-prediction-dataset/). Do not upload raw data or describe synthetic results as Criteo findings. Any redistribution of data-derived material must follow the applicable dataset terms.
 
-## Deployment preparation
+## Deployment
 
-The repository includes aggregate results so the app starts without downloading raw data. For Streamlit deployment, select `app.py`, Python 3.11 and `requirements.txt`. Public GitHub publication and public app deployment require the owner's approval and account sign-in. Never commit credentials, `.venv` or raw data.
+The repository includes aggregate results so the app starts without downloading raw data. Streamlit Community Cloud runs `app.py` with `requirements.txt`. Never commit credentials, `.venv` or raw data.

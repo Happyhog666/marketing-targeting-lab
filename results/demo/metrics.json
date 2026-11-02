@@ -5,6 +5,16 @@
   "test_rows": 6000,
   "conversions": 3637,
   "test_conversions": 1091,
+  "test_arm_counts": {
+    "size": {
+      "0": 3019,
+      "1": 2981
+    },
+    "sum": {
+      "0": 407,
+      "1": 684
+    }
+  },
   "arm_counts": {
     "size": {
       "0": 10066,
@@ -16,7 +26,7 @@
     }
   },
   "treatment_probability": 0.49664285714285716,
-  "response_auc": 0.6409507294912223,
+  "response_auc": 0.6382396820668709,
   "features": [
     "f0",
     "f1",

@@ -1,6 +1,7 @@
 from pathlib import Path
 import json
 import pandas as pd
+import numpy as np
 import streamlit as st
 ROOT = Path(__file__).resolve().parent
 st.set_page_config(page_title='Marketing Targeting Lab', layout='wide')
@@ -15,17 +16,33 @@ df = pd.read_csv(ROOT/'results'/dataset/'policies.csv')
 c1,c2,c3 = st.columns(3)
 c1.metric('Total records', f"{meta['rows']:,}")
 c2.metric('Held-out test records', f"{meta['test_rows']:,}")
-c3.metric('Response ROC AUC', f"{meta['response_auc']:.3f}")
+c3.metric('Response ROC AUC (treated test group)', f"{meta['response_auc']:.3f}")
 if dataset == 'criteo':
     st.warning(f"The test set contains only {meta['test_conversions']} conversions. Strategy estimates may be unstable and do not demonstrate a real-world business improvement.")
-    st.caption('This pilot uses 7,000 real records retrieved before network rate limiting. The planned 150,000-row random sample has not yet been completed. AUC may also be unstable because conversions are rare.' if meta['rows']==7000 else meta['provenance']['sampling'])
+    source = meta['provenance']
+    sample_note = 'The planned 150,000-row whole-file random sample has not yet been completed. ' if meta['rows'] < 150000 else ''
+    st.caption(f"Sampling: {source['sampling']}. {source.get('status', '')} {sample_note}AUC may be unstable when conversions are rare.")
 budget = st.sidebar.slider('Targeting budget (% of customers)', 5,100,20,5)/100
 st.subheader('Budget and estimated incremental conversions')
 st.line_chart(df.pivot(index='budget',columns='strategy',values='gain'))
 st.caption('Vertical axis: estimated incremental conversions per test-set customer. Horizontal axis: proportion targeted. Random uses a fixed-seed ordering.')
+areas = []
+for strategy, points in df.groupby('strategy'):
+    points = points.sort_values('budget')
+    area = np.trapezoid(np.r_[0, points['gain'].to_numpy()], np.r_[0, points['budget'].to_numpy()])
+    areas.append({'Strategy': strategy, 'Area under gain curve': area})
+with st.expander('Compare overall targeting curves'):
+    st.dataframe(pd.DataFrame(areas), hide_index=True, width='stretch')
+    st.caption('Area under the displayed incremental-gain curve, approximated with trapezoids from 0% to 100% targeting. This exploratory summary has no uncertainty interval and does not establish a significant difference.')
 selected = df[(df.budget-budget).abs()<.001].copy()
 st.dataframe(selected, hide_index=True, width='stretch')
 st.caption('Lower and upper are approximate pointwise 95% confidence bounds. Uncertainty may be too large to establish that one strategy is better.')
+comparison_file = ROOT/'results'/dataset/'uplift_vs_response.csv'
+if comparison_file.exists():
+    difference = pd.read_csv(comparison_file)
+    row = difference[(difference.budget-budget).abs()<.001].iloc[0]
+    st.write(f"**Uplift minus Response:** {row['difference']:.5f} incremental conversions per test customer (approximate 95% interval: {row['lower']:.5f} to {row['upper']:.5f}).")
+    st.caption('This paired comparison uses the same test customers for both policies. The interval does not include model-training uncertainty or adjust for comparing many budgets.')
 st.download_button('Download policy results (CSV)', df.to_csv(index=False), 'policies.csv')
 with st.expander('What do the three strategies do?', expanded=True):
     st.markdown('**Response:** targets customers predicted to be most likely to convert.\n\n**Uplift:** ranks customers by the predicted difference between conversion probabilities with and without advertising.\n\n**Random:** selects customers at random as a baseline.')

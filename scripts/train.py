@@ -53,10 +53,28 @@ out = ROOT/'results'/a.data
 out.mkdir(parents=True, exist_ok=True)
 joblib.dump({'control':models[0],'treatment':models[1],'features':features},out/'models.joblib')
 pd.DataFrame(records).to_csv(out/'policies.csv', index=False)
+comparisons = []
+response_order = np.argsort(-scores['Response'], kind='stable')
+uplift_order = np.argsort(-scores['Uplift'], kind='stable')
+for fraction in np.arange(.05, 1.001, .05):
+    n = max(2, int(len(test)*fraction))
+    difference = np.zeros(len(test))
+    difference[uplift_order[:n]] += z[uplift_order[:n]]
+    difference[response_order[:n]] -= z[response_order[:n]]
+    estimate = float(difference.mean())
+    if '_sample_block' in test:
+        sums = pd.DataFrame({'g':test['_sample_block'].to_numpy(),'v':difference}).groupby('g')['v'].sum()
+        se = float(sums.std(ddof=1)/np.sqrt(len(sums))/100)
+    else:
+        se = float(difference.std(ddof=1)/np.sqrt(len(difference)))
+    comparisons.append(dict(budget=round(float(fraction),2), difference=estimate,
+                            lower=estimate-1.96*se, upper=estimate+1.96*se))
+pd.DataFrame(comparisons).to_csv(out/'uplift_vs_response.csv', index=False)
 meta = dict(dataset=a.data, rows=len(df), train_rows=len(train), test_rows=len(test),
             conversions=int(df.conversion.sum()), test_conversions=int(test.conversion.sum()),
+            test_arm_counts=test.groupby('treatment').conversion.agg(['size','sum']).to_dict(),
             arm_counts=df.groupby('treatment').conversion.agg(['size','sum']).to_dict(),
-            treatment_probability=e, response_auc=float(roc_auc_score(test.conversion,p1)),
+            treatment_probability=e, response_auc=float(roc_auc_score(test.loc[test.treatment == 1, 'conversion'],p1[test.treatment.to_numpy() == 1])),
             features=features, seed=42,
             caveat='Approximate pointwise intervals; benchmark estimates, not original advertiser ROI. No multiple-testing correction.')
 if a.data == 'criteo':
